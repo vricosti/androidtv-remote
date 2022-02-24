@@ -6,10 +6,13 @@
         "targets": {
           "esmodules": true
         },
+        "modules": false,
         "useBuiltIns": "usage",
-        "corejs": "3.20.2"
+        "corejs": 3
       }
     ]
   ],
-  "plugins": ["babel-plugin-transform-import-meta"]
+  "plugins": [
+    "babel-plugin-transform-import-meta"
+  ]
 }

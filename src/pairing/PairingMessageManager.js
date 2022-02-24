@@ -1,24 +1,24 @@
 import protobufjs from "protobufjs";
-import {system} from "systeminformation";
-import * as path from "path";
-
-import { fileURLToPath } from 'url';
-import { dirname } from "path";
-const directory = dirname(fileURLToPath(import.meta.url));
+//import {system} from "systeminformation";
+import pairingMessageProto from "./pairingmessage.proto.js";
+import getBrowserInfo from "../common/getbrowserinfo.js";
 
 class PairingMessageManager {
-    constructor(){
-        this.root = protobufjs.loadSync(path.join(directory,"pairingmessage.proto"));
+    constructor(options = {}){
+        this.root = protobufjs.parse(pairingMessageProto).root;
 
         this.PairingMessage = this.root.lookupType("pairing.PairingMessage");
         this.Status = this.root.lookupEnum("pairing.PairingMessage.Status").values;
         this.RoleType = this.root.lookupEnum("RoleType").values;
         this.EncodingType = this.root.lookupEnum("pairing.PairingEncoding.EncodingType").values;
 
-        system().then((data) => {
-            pairingMessageManager.manufacturer = data.manufacturer;
-            pairingMessageManager.model = data.model;
-        });
+        this.manufacturer = options.manufacturer || 'Unknown Manufacturer';
+        this.model = options.model || 'Unknown Model';
+
+        // system().then((data) => {
+        //     pairingMessageManager.manufacturer = data.manufacturer;
+        //     pairingMessageManager.model = data.model;
+        // });
     }
 
     create(payload){
@@ -85,5 +85,11 @@ class PairingMessageManager {
     }
 
 }
-let pairingMessageManager = new PairingMessageManager()
+
+const deviceInfo = getBrowserInfo();
+let pairingMessageManager = new PairingMessageManager({
+    manufacturer: browserInfo.os, 
+    model: browserInfo.browser
+});
+
 export { pairingMessageManager };

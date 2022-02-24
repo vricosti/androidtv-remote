@@ -1,22 +1,23 @@
 import protobufjs from "protobufjs";
-import { system } from "systeminformation"
-import * as path from "path";
-
-import { fileURLToPath } from 'url';
-import { dirname } from "path";
-const directory = dirname(fileURLToPath(import.meta.url));
+//import { system } from "systeminformation"
+import remoteMessageProto from "./remotemessage.proto.js";
+import getBrowserInfo from "../common/getbrowserinfo.js";
 
 class RemoteMessageManager {
-    constructor() {
-        this.root = protobufjs.loadSync(path.join(directory,"remotemessage.proto"));
+    constructor(options = {}) {
+        this.root = protobufjs.parse(remoteMessageProto).root;
         this.RemoteMessage = this.root.lookupType("remote.RemoteMessage");
         this.RemoteKeyCode = this.root.lookupEnum("remote.RemoteKeyCode").values;
         this.RemoteDirection = this.root.lookupEnum("remote.RemoteDirection").values;
 
-        system().then((data) => {
-            this.manufacturer = data.manufacturer;
-            this.model = data.model;
-        });
+        this.manufacturer = options.manufacturer || 'Unknown Manufacturer';
+        this.model = options.model || 'Unknown Model';
+
+        // system().then((data) => {
+        //     this.manufacturer = data.manufacturer;
+        //     this.model = data.model;
+        // });
+
     }
 
     create(payload){
@@ -49,7 +50,7 @@ class RemoteMessageManager {
                     vendor : this.manufacturer,
                     unknown1 : 1,
                     unknown2 : "1",
-                    packageName : "androitv-remote",
+                    packageName : "androidtv-remote",
                     appVersion : "1.0.0",
                 }
             }
@@ -117,6 +118,10 @@ class RemoteMessageManager {
     }
 
 }
-let remoteMessageManager = new RemoteMessageManager();
+const deviceInfo = getBrowserInfo();
+let remoteMessageManager = new RemoteMessageManager({
+    manufacturer: browserInfo.os, 
+    model: browserInfo.browser
+});
 
 export { remoteMessageManager };
