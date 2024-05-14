@@ -1,7 +1,7 @@
 import {CertificateGenerator} from "./certificate/CertificateGenerator.js"
 import {PairingManager} from "./pairing/PairingManager.js"
 import {RemoteManager} from "./remote/RemoteManager.js";
-import {remoteMessageManager} from "./remote/RemoteMessageManager.js";
+import {RemoteMessageManager} from "./remote/RemoteMessageManager.js";
 import EventEmitter from "events";
 
 export class AndroidRemote extends EventEmitter {
@@ -16,6 +16,10 @@ export class AndroidRemote extends EventEmitter {
         this.pairing_port = options.pairing_port?options.pairing_port:6467;
         this.remote_port = options.remote_port?options.remote_port:6466;
         this.service_name = options.service_name?options.service_name:"Service Name";
+        this.systeminfo = options.systeminfo?options.systeminfo:{
+            manufacturer: "default manufacturer", 
+            model: "default model"
+        };
     }
 
     async start() {
@@ -30,7 +34,13 @@ export class AndroidRemote extends EventEmitter {
                 'OU'
             );
 
-            this.pairingManager = new PairingManager(this.host, this.pairing_port, this.cert, this.service_name)
+            this.pairingManager = new PairingManager(
+                this.host, 
+                this.pairing_port, 
+                this.cert, 
+                this.service_name, 
+                this.systeminfo);
+
             this.pairingManager.on('secret', () => this.emit('secret'));
 
             let paired = await this.pairingManager.start().catch((error) => {
@@ -42,7 +52,7 @@ export class AndroidRemote extends EventEmitter {
             }
         }
 
-        this.remoteManager = new RemoteManager(this.host, this.remote_port, this.cert);
+        this.remoteManager = new RemoteManager(this.host, this.remote_port, this.cert, this.systeminfo);
 
         this.remoteManager.on('powered', (powered) => this.emit('powered', powered));
 
@@ -92,6 +102,7 @@ export class AndroidRemote extends EventEmitter {
 }
 
 
+const remoteMessageManager = new RemoteMessageManager();
 let RemoteKeyCode = remoteMessageManager.RemoteKeyCode;
 let RemoteDirection = remoteMessageManager.RemoteDirection;
 export {

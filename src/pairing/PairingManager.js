@@ -1,17 +1,18 @@
 import tls from "tls";
-import {pairingMessageManager} from "./PairingMessageManager.js";
-import Crypto from "crypto-js";
+import {PairingMessageManager} from "./PairingMessageManager.js";
+import forge from 'node-forge';
 import EventEmitter from "events";
 
 class PairingManager extends EventEmitter {
 
-    constructor(host, port, certs, service_name) {
+    constructor(host, port, certs, service_name, systeminfo) {
         super();
         this.host = host;
         this.port = port;
         this.chunks = Buffer.from([]);
         this.certs = certs;
         this.service_name = service_name;
+        this.pairingMessageManager = new PairingMessageManager(systeminfo);
     }
 
     sendCode(code){
@@ -21,23 +22,23 @@ class PairingManager extends EventEmitter {
         let client_certificate = this.client.getCertificate();
         let server_certificate = this.client.getPeerCertificate();
 
-        let sha256 = Crypto.algo.SHA256.create();
+        let sha256 = forge.md.sha256.create();
 
-        sha256.update(Crypto.enc.Hex.parse(client_certificate.modulus));
-        sha256.update(Crypto.enc.Hex.parse("0" + client_certificate.exponent.slice(2)));
-        sha256.update(Crypto.enc.Hex.parse(server_certificate.modulus));
-        sha256.update(Crypto.enc.Hex.parse("0" + server_certificate.exponent.slice(2)));
-        sha256.update(Crypto.enc.Hex.parse(code.slice(2)));
+        sha256.update(forge.util.hexToBytes(client_certificate.modulus), 'raw');
+        sha256.update(forge.util.hexToBytes("0" + client_certificate.exponent.slice(2)), 'raw');
+        sha256.update(forge.util.hexToBytes(server_certificate.modulus), 'raw');
+        sha256.update(forge.util.hexToBytes("0" + server_certificate.exponent.slice(2)), 'raw');
+        sha256.update(forge.util.hexToBytes(code.slice(2)), 'raw');
 
-        let hash = sha256.finalize();
-        let hash_array  = this.hexStringToBytes(hash.toString());
+        let hash = sha256.digest().getBytes();
+        let hash_array = Array.from(hash, c => c.charCodeAt(0) & 0xff);
         let check = hash_array[0];
         if (check !== code_bytes[0]){
             this.client.destroy(new Error("Bad Code"));
             return false;
         }
         else {
-            this.client.write(pairingMessageManager.createPairingSecret(hash_array));
+            this.client.write(this.pairingMessageManager.createPairingSecret(hash_array));
             return true;
         }
     }
@@ -61,7 +62,7 @@ class PairingManager extends EventEmitter {
 
             this.client.on("secureConnect", () => {
                 console.debug(this.host + " Pairing secure connected ");
-                this.client.write(pairingMessageManager.createPairingRequest(this.service_name));
+                this.client.write(this.pairingMessageManager.createPairingRequest(this.service_name));
             });
 
             this.client.on('data', (data) => {
@@ -70,20 +71,20 @@ class PairingManager extends EventEmitter {
 
                 if(this.chunks.length > 0 && this.chunks.readInt8(0) === this.chunks.length - 1){
 
-                    let message = pairingMessageManager.parse(this.chunks);
+                    let message = this.pairingMessageManager.parse(this.chunks);
 
                     console.debug("Receive : " + Array.from(this.chunks));
                     console.debug("Receive : " + JSON.stringify(message.toJSON()));
 
-                    if (message.status !== pairingMessageManager.Status.STATUS_OK){
+                    if (message.status !== this.pairingMessageManager.Status.STATUS_OK){
                         this.client.destroy(new Error(message.status));
                     }
                     else {
                         if(message.pairingRequestAck){
-                            this.client.write(pairingMessageManager.createPairingOption());
+                            this.client.write(this.pairingMessageManager.createPairingOption());
                         }
                         else if(message.pairingOption){
-                            this.client.write(pairingMessageManager.createPairingConfiguration());
+                            this.client.write(this.pairingMessageManager.createPairingConfiguration());
                         }
                         else if(message.pairingConfigurationAck){
                             this.emit('secret');

@@ -19,11 +19,9 @@
   "author": "@louis49",
   "license": "ISC",
   "dependencies": {
-    "crypto-js": "^4.1.1",
+    "core-js": "^3.20.2",
     "node-forge": "^0.10.0",
-    "protobufjs": "^6.11.2",
-    "systeminformation": "^5.9.17",
-    "core-js": "^3.20.2"
+    "protobufjs": "^6.11.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.16.7",

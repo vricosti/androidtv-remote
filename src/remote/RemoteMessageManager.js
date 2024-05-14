@@ -1,18 +1,17 @@
 import protobufjs from "protobufjs";
-import { system } from "systeminformation"
 import remoteMessageProto from "./remotemessage.proto.js";
 
 class RemoteMessageManager {
-    constructor() {
+    constructor(systeminfo = {}) {
+        systeminfo = systeminfo || {};
+
         this.root = protobufjs.parse(remoteMessageProto).root;
         this.RemoteMessage = this.root.lookupType("remote.RemoteMessage");
         this.RemoteKeyCode = this.root.lookupEnum("remote.RemoteKeyCode").values;
         this.RemoteDirection = this.root.lookupEnum("remote.RemoteDirection").values;
 
-        system().then((data) => {
-            this.manufacturer = data.manufacturer;
-            this.model = data.model;
-        });
+        this.manufacturer = systeminfo.manufacturer || 'defaultManufacturer';
+        this.model = systeminfo.model || 'defaultModel';
     }
 
     create(payload){
@@ -113,6 +112,5 @@ class RemoteMessageManager {
     }
 
 }
-let remoteMessageManager = new RemoteMessageManager();
 
-export { remoteMessageManager };
+export { RemoteMessageManager };

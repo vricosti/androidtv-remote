@@ -1,19 +1,19 @@
 import protobufjs from "protobufjs";
-import {system} from "systeminformation";
 import pairingMessageProto from "./pairingmessage.proto.js";
 
 class PairingMessageManager {
-    constructor(){
+    constructor(systeminfo = {}){
+
+        systeminfo = systeminfo || {};
+
         this.root = protobufjs.parse(pairingMessageProto).root;
         this.PairingMessage = this.root.lookupType("pairing.PairingMessage");
         this.Status = this.root.lookupEnum("pairing.PairingMessage.Status").values;
         this.RoleType = this.root.lookupEnum("RoleType").values;
         this.EncodingType = this.root.lookupEnum("pairing.PairingEncoding.EncodingType").values;
 
-        system().then((data) => {
-            pairingMessageManager.manufacturer = data.manufacturer;
-            pairingMessageManager.model = data.model;
-        });
+        this.manufacturer = systeminfo.manufacturer || 'defaultManufacturer';
+        this.model = systeminfo.model || 'defaultModel';
     }
 
     create(payload){
@@ -80,5 +80,5 @@ class PairingMessageManager {
     }
 
 }
-let pairingMessageManager = new PairingMessageManager()
-export { pairingMessageManager };
+
+export { PairingMessageManager };

@@ -1,15 +1,16 @@
 import tls from "tls";
-import { remoteMessageManager } from "./RemoteMessageManager.js";
+import { RemoteMessageManager } from "./RemoteMessageManager.js";
 import EventEmitter from "events";
 
 class RemoteManager extends EventEmitter {
-    constructor(host, port, certs) {
+    constructor(host, port, certs, systeminfo) {
         super();
         this.host = host;
         this.port = port;
         this.certs = certs;
         this.chunks = Buffer.from([]);
         this.error = null;
+        this.remoteMessageManager = new RemoteMessageManager(systeminfo);
     }
 
     async start() {
@@ -47,7 +48,7 @@ class RemoteManager extends EventEmitter {
 
                 if(this.chunks.length > 0 && this.chunks.readInt8(0) === this.chunks.length - 1){
 
-                    let message = remoteMessageManager.parse(this.chunks);
+                    let message = this.remoteMessageManager.parse(this.chunks);
 
                     if(!message.remotePingRequest){
                         //console.debug(this.host + " Receive : " + Array.from(this.chunks));
@@ -55,7 +56,7 @@ class RemoteManager extends EventEmitter {
                     }
 
                     if(message.remoteConfigure){
-                        this.client.write(remoteMessageManager.createRemoteConfigure(
+                        this.client.write(this.remoteMessageManager.createRemoteConfigure(
                             622,
                             "Build.MODEL",
                             "Build.MANUFACTURER",
@@ -65,10 +66,10 @@ class RemoteManager extends EventEmitter {
                         this.emit('ready');
                     }
                     else if(message.remoteSetActive){
-                        this.client.write(remoteMessageManager.createRemoteSetActive(622));
+                        this.client.write(this.remoteMessageManager.createRemoteSetActive(622));
                     }
                     else if(message.remotePingRequest){
-                        this.client.write(remoteMessageManager.createRemotePingResponse(message.remotePingRequest.val1));
+                        this.client.write(this.remoteMessageManager.createRemotePingResponse(message.remotePingRequest.val1));
                     }
                     else if(message.remoteImeKeyInject){
                         this.emit('current_app', message.remoteImeKeyInject.appInfo.appPackage);
@@ -156,19 +157,19 @@ class RemoteManager extends EventEmitter {
     }
 
     sendPower(){
-        this.client.write(remoteMessageManager.createRemoteKeyInject(
-            remoteMessageManager.RemoteDirection.SHORT,
-            remoteMessageManager.RemoteKeyCode.KEYCODE_POWER));
+        this.client.write(this.remoteMessageManager.createRemoteKeyInject(
+            this.remoteMessageManager.RemoteDirection.SHORT,
+            this.remoteMessageManager.RemoteKeyCode.KEYCODE_POWER));
     }
 
     sendKey(key, direction){
-        this.client.write(remoteMessageManager.createRemoteKeyInject(
+        this.client.write(this.remoteMessageManager.createRemoteKeyInject(
             direction,
             key));
     }
 
     sendAppLink(app_link){
-        this.client.write(remoteMessageManager.createRemoteRemoteAppLinkLaunchRequest(app_link));
+        this.client.write(this.remoteMessageManager.createRemoteRemoteAppLinkLaunchRequest(app_link));
     }
 
     stop(){

@@ -1,5 +1,4 @@
 import forge from "node-forge"
-import crypto from "crypto";
 
 export class CertificateGenerator {
 
@@ -7,7 +6,7 @@ export class CertificateGenerator {
         let keys = forge.pki.rsa.generateKeyPair(2048);
         let cert = forge.pki.createCertificate();
         cert.publicKey = keys.publicKey;
-        cert.serialNumber = '01' + crypto. randomBytes(19).toString("hex");
+        cert.serialNumber = '01' + forge.util.bytesToHex(forge.random.getBytesSync(19));
         cert.validity.notBefore = new Date();
         let date = new Date();
         date.setUTCFullYear(2099);
