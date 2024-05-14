@@ -88,8 +88,8 @@ class PairingMessageManager {
 
 const deviceInfo = getBrowserInfo();
 let pairingMessageManager = new PairingMessageManager({
-    manufacturer: browserInfo.os, 
-    model: browserInfo.browser
+    manufacturer: deviceInfo.os, 
+    model: deviceInfo.browser
 });
 
 export { pairingMessageManager };

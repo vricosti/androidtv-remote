@@ -1,12 +1,17 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'development', // Or 'production' or 'none'
+  mode: 'production', // Or 'production' or 'none'
   entry: './src/index.js',
   output: {
     path: path.resolve( __dirname, 'dist' ),
-    filename: '[name].js',
-    //libraryTarget: 'umd'
+    filename: 'index.js',
+    library: 'AndroidTvRemote',
+    libraryTarget: 'umd',
+    globalObject: 'this',
+  },
+  externals: {
+    'tls': 'commonjs tls'  // Tells Webpack to treat `tls` as a commonjs module which is external
   },
   module: {
     rules: [
@@ -25,16 +30,10 @@ module.exports = {
   },
   resolve: {
     fallback: {
-        "fs": false,
-        // "os": require.resolve("os-browserify/browser"),
-        // "http": require.resolve("stream-http"),
-        // "https": require.resolve("https-browserify"),
-        "crypto": require.resolve("crypto-browserify"),
-        "buffer": require.resolve("buffer"),
-        "stream": require.resolve("stream-browserify"),
-        // "net": false,
-        // "tls": false,
-        // "child_process": false
+        "tls": false,
+        // "crypto": require.resolve("crypto-browserify"),
+        // "buffer": require.resolve("buffer"),
+        // "stream": require.resolve("stream-browserify"),
       }
   },
   //target: 'web'

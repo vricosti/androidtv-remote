@@ -1,6 +1,6 @@
 import tls from "tls";
 import {pairingMessageManager} from "./PairingMessageManager.js";
-import Crypto from "crypto-js";
+import forge from 'node-forge';
 import EventEmitter from "events";
 
 class PairingManager extends EventEmitter {
@@ -14,30 +14,33 @@ class PairingManager extends EventEmitter {
         this.service_name = service_name;
     }
 
-    sendCode(code){
+    sendCode(code) {
         console.debug("Sending code : ", code);
         let code_bytes = this.hexStringToBytes(code);
 
         let client_certificate = this.client.getCertificate();
         let server_certificate = this.client.getPeerCertificate();
 
-        let sha256 = Crypto.algo.SHA256.create();
+        // Create a SHA-256 hash object
+        let sha256 = forge.md.sha256.create();
 
-        sha256.update(Crypto.enc.Hex.parse(client_certificate.modulus));
-        sha256.update(Crypto.enc.Hex.parse("0" + client_certificate.exponent.slice(2)));
-        sha256.update(Crypto.enc.Hex.parse(server_certificate.modulus));
-        sha256.update(Crypto.enc.Hex.parse("0" + server_certificate.exponent.slice(2)));
-        sha256.update(Crypto.enc.Hex.parse(code.slice(2)));
+        // Update hash with your data
+        sha256.update(forge.util.hexToBytes(client_certificate.modulus), 'raw');
+        sha256.update(forge.util.hexToBytes("0" + client_certificate.exponent.slice(2)), 'raw');
+        sha256.update(forge.util.hexToBytes(server_certificate.modulus), 'raw');
+        sha256.update(forge.util.hexToBytes("0" + server_certificate.exponent.slice(2)), 'raw');
+        sha256.update(forge.util.hexToBytes(code.slice(2)), 'raw');
 
-        let hash = sha256.finalize();
-        let hash_array  = this.hexStringToBytes(hash.toString());
+        // Finalize the hash and convert to a byte array
+        let hash = sha256.digest().getBytes();
+        let hash_array = Array.from(hash, c => c.charCodeAt(0) & 0xff);
+
         let check = hash_array[0];
-        if (check !== code_bytes[0]){
+        if (check !== code_bytes[0]) {
             this.client.destroy(new Error("Bad Code"));
             return false;
-        }
-        else {
-            this.client.write(pairingMessageManager.createPairingSecret(hash_array));
+        } else {
+            this.client.write(pairingMessageManager.createPairingSecret(new Uint8Array(hash_array)));
             return true;
         }
     }

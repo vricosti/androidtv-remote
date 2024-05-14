@@ -22,11 +22,8 @@
   "dependencies": {
     "buffer": "^6.0.3",
     "core-js": "^3.20.2",
-    "crypto-browserify": "^3.12.0",
-    "crypto-js": "^4.1.1",
     "node-forge": "^0.10.0",
-    "protobufjs": "^6.11.2",
-    "stream-browserify": "^3.0.0"
+    "protobufjs": "^6.11.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.16.7",

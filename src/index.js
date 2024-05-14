@@ -4,7 +4,7 @@ import {RemoteManager} from "./remote/RemoteManager.js";
 import {remoteMessageManager} from "./remote/RemoteMessageManager.js";
 import EventEmitter from "events";
 
-export class AndroidRemote extends EventEmitter {
+class AndroidRemote extends EventEmitter {
     constructor(host, options)
     {
         super();
@@ -92,16 +92,27 @@ export class AndroidRemote extends EventEmitter {
 }
 
 
-let RemoteKeyCode = remoteMessageManager.RemoteKeyCode;
-let RemoteDirection = remoteMessageManager.RemoteDirection;
+// Exports for RemoteKeyCode and RemoteDirection from remoteMessageManager
+const RemoteKeyCode = remoteMessageManager.RemoteKeyCode;
+const RemoteDirection = remoteMessageManager.RemoteDirection;
+
+// Export all modules as named exports
 export {
-    RemoteKeyCode,
-    RemoteDirection,
-}
+  CertificateGenerator,
+  PairingManager,
+  RemoteManager,
+  AndroidRemote,
+  RemoteKeyCode,
+  RemoteDirection,
+};
+
+// Optional: If you still want a default export that bundles everything
 export default {
-    AndroidRemote,
-    CertificateGenerator,
-    RemoteKeyCode,
-    RemoteDirection,
-}
+  AndroidRemote,
+  CertificateGenerator,
+  PairingManager,
+  RemoteManager,
+  RemoteKeyCode,
+  RemoteDirection,
+};
 

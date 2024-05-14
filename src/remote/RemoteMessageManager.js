@@ -120,8 +120,8 @@ class RemoteMessageManager {
 }
 const deviceInfo = getBrowserInfo();
 let remoteMessageManager = new RemoteMessageManager({
-    manufacturer: browserInfo.os, 
-    model: browserInfo.browser
+    manufacturer: deviceInfo.os, 
+    model: deviceInfo.browser
 });
 
 export { remoteMessageManager };

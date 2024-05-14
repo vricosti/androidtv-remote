@@ -1,8 +1,11 @@
-import {
-    AndroidRemote,
-    RemoteKeyCode,
-    RemoteDirection
-} from "androidtv-remote";
+// import {
+//     AndroidRemote,
+//     RemoteKeyCode,
+//     RemoteDirection
+// } from "androidtv-remote";
+
+import pkg from 'androidtv-remote';
+const { AndroidRemote, RemoteKeyCode, RemoteDirection } = pkg;
 
 import Readline from "readline";
 
