@@ -1,3 +1,5 @@
+
+export default `
 // remotemessage.proto
 syntax = "proto3";
 package remote;
@@ -457,3 +459,4 @@ message RemoteMessage {
   RemoteResetPreferredAudioDevice remote_reset_preferred_audio_device = 61;
   RemoteAppLinkLaunchRequest remote_app_link_launch_request = 90;
 }
+`;

@@ -1,4 +1,5 @@
-// pairingmessage.proto
+// pairingmessage.proto.js
+export default `
 syntax = "proto3";
 package pairing;
 
@@ -74,3 +75,4 @@ message PairingMessage {
   PairingSecret pairing_secret = 40;
   PairingSecretAck pairing_secret_ack = 41;
 }
+`;
