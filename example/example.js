@@ -6,15 +6,19 @@ import {
 
 import fs from "fs/promises";
 import path from "path";
-import Readline from "readline";
+import Readline from "readline";    
 import { system } from "systeminformation";
 
-const CERT_FILE_PATH = path.resolve("./androidtv_cert.json");
+const rememberPairing = true;
+
+const CERT_KEY_PATH = path.resolve("./androidtv_key.pem");
+const CERT_CERT_PATH = path.resolve("./androidtv_cert.pem");
 
 async function loadCertificate() {
     try {
-        let data = await fs.readFile(CERT_FILE_PATH, 'utf8');
-        return JSON.parse(data);
+        let key = await fs.readFile(CERT_KEY_PATH, 'utf8');
+        let cert = await fs.readFile(CERT_CERT_PATH, 'utf8');
+        return { key, cert };
     } catch (error) {
         console.error("No existing certificate found, a new pairing will be required.");
         return null;
@@ -23,7 +27,8 @@ async function loadCertificate() {
 
 async function saveCertificate(cert) {
     try {
-        await fs.writeFile(CERT_FILE_PATH, JSON.stringify(cert, null, 2));
+        await fs.writeFile(CERT_KEY_PATH, cert.key);
+        await fs.writeFile(CERT_CERT_PATH, cert.cert);
         console.log("Certificate saved successfully.");
     } catch (error) {
         console.error("Failed to save certificate: ", error);
@@ -51,12 +56,13 @@ async function setup() {
     };
 
     let cert = null;
-    const rememberPairing = false;
-
+    
     if (rememberPairing) {
         cert = await loadCertificate();
         console.log('Loaded certificate: ', cert);
-        options.cert = cert;
+        if (cert) {
+            options.cert = cert;
+        }
     }
 
     let androidRemote = new AndroidRemote(host, options);
@@ -106,6 +112,7 @@ async function setup() {
     }
 
     let started = await androidRemote.start();
+    console.log('after androidRemote.start()');
     if (started && rememberPairing && (!cert || !cert.key || !cert.cert)) {
         await saveCertificate(androidRemote.getCertificate());
     }

@@ -102,3 +102,49 @@ Emitted when androidtv has a problem : by example when you send a wrong app_link
 # License
 
 MIT
+
+# misc
+PairingManager.start:  {
+  key: '-----BEGIN RSA PRIVATE KEY-----\r\n' +
+    ...
+    '-----END RSA PRIVATE KEY-----\r\n',
+  cert: '-----BEGIN CERTIFICATE-----\r\n' +
+    ...
+    '-----END CERTIFICATE-----\r\n',
+  port: 6467,
+  host: '192.168.1.102',
+  rejectUnauthorized: false
+}
+Start Pairing Connect
+192.168.1.102 Pairing connected
+192.168.1.102 Pairing secure connected 
+Receive : 7,8,2,16,200,1,90,0
+Receive : {"protocolVersion":2,"status":"STATUS_OK","pairingRequestAck":{}}
+Receive : 16,8,2,16,200,1,162,1,8,18,4,8,3,16,6,24,1
+Receive : {"protocolVersion":2,"status":"STATUS_OK","pairingOption":{"outputEncodings":[{"type":"ENCODING_TYPE_HEXADECIMAL","symbolLength":6}],"preferredRole":"ROLE_TYPE_INPUT"}}
+Receive : 8,8,2,16,200,1,250,1,0
+Receive : {"protocolVersion":2,"status":"STATUS_OK","pairingConfigurationAck":{}}
+Code : 3CADA5
+Sending code :  3CADA5
+Receive : 42,8,2,16,200,1,202,2,34,10,32,60,12,224,82,205,111,147,194,35,197,122,187,213,226,206,186,253,43,136,33,239,71,58,23,138,148,52,58,232,69,156,179
+Receive : {"protocolVersion":2,"status":"STATUS_OK","pairingSecretAck":{"secret":"PAzgUs1vk8IjxXq71eLOuv0riCHvRzoXipQ0OuhFnLM="}}
+192.168.1.102 Paired!
+192.168.1.102 Pairing Connection closed false
+RemoteManager.start:  {
+  key: '-----BEGIN RSA PRIVATE KEY-----\r\n' +
+    ...
+    '-----END RSA PRIVATE KEY-----\r\n',
+  cert: '-----BEGIN CERTIFICATE-----\r\n' +
+    ...
+    '-----END CERTIFICATE-----\r\n',
+  port: 6466,
+  host: '192.168.1.102',
+  rejectUnauthorized: false
+}
+192.168.1.102 Remote secureConnect
+after androidRemote.start()
+192.168.1.102 Receive : {"remoteConfigure":{"code1":639,"deviceInfo":{"model":"Freebox Player Mini v2","vendor":"Freebox","unknown1":1,"unknown2":"7.1.1","packageName":"com.google.android.tv.remote.service","appVersion":"5.2.473254133"}}}
+Create Remote {"remoteConfigure":{"code1":622,"deviceInfo":{"model":"Z490 VISION D","vendor":"Gigabyte Technology Co., Ltd.","unknown1":1,"unknown2":"1","packageName":"androidtv-remote","appVersion":"1.0.0"}}}
+Sending {"remoteConfigure":{"code1":622,"deviceInfo":{"model":"Z490 VISION D","vendor":"Gigabyte Technology Co., Ltd.","unknown1":1,"unknown2":"1","packageName":"androidtv-remote","appVersion":"1.0.0"}}}
+
+
