@@ -1,6 +1,8 @@
 import tls from "tls";
 import { RemoteMessageManager } from "./RemoteMessageManager.js";
 import EventEmitter from "events";
+import {Buffer} from "buffer";
+import * as jsEnv from "../utils/utils.js";
 
 class RemoteManager extends EventEmitter {
     constructor(host, port, certs, systeminfo) {
@@ -16,19 +18,34 @@ class RemoteManager extends EventEmitter {
     async start() {
         return new Promise((resolve, reject) => {
             let options = {
-                key : this.certs.key,
-                cert: this.certs.cert,
                 port: this.port,
-                host : this.host,
+                host: this.host,
+                key: this.certs.key,
+                cert: this.certs.cert,
                 rejectUnauthorized: false
             };
+            
+            if (jsEnv.isNodeOrDeno) {
+                console.debug('connecting using node:tls');
+                this.client = tls.connect(options, () => {
+                    console.debug("Remote connected")
+                });
+                
+            } else if (jsEnv.isReactNative) {
+                console.debug('connecting using react-native-tcp-socket');
+                options.tls = true;
+                options.tlsCheckValidity = false;
+
+                this.client = TcpSockets.connectTLS(options, () => {
+                    console.debug("Remote connected")
+                });
+            }
 
             console.debug("Start Remote Connect");
 
-            this.client = tls.connect(options, () => {
-                //console.debug("Remote connected")
-            });
-
+           
+            
+            
             this.client.on('timeout', () => {
                 console.debug('timeout');
                 this.client.destroy();
@@ -37,7 +54,8 @@ class RemoteManager extends EventEmitter {
             // Le ping est reçu toutes les 5 secondes
             this.client.setTimeout(10000);
 
-            this.client.on("secureConnect", () => {
+            const connectEventName = jsEnv.isNodeOrDeno ? "secureConnect" : "connect";
+            this.client.on(connectEventName, () => {
                 console.debug(this.host + " Remote secureConnect");
                 resolve(true);
             });

@@ -1,7 +1,9 @@
 import tls from "tls";
 import {PairingMessageManager} from "./PairingMessageManager.js";
 import forge from 'node-forge';
+import {Buffer} from "buffer";
 import EventEmitter from "events";
+import * as jsEnv from "../utils/utils.js";
 
 class PairingManager extends EventEmitter {
 
@@ -46,21 +48,36 @@ class PairingManager extends EventEmitter {
     async start() {
         return new Promise((resolve, reject) => {
             let options = {
-                key : this.certs.key,
-                cert: this.certs.cert,
                 port: this.port,
-                host : this.host,
-                rejectUnauthorized: false,
-            }
+                host: this.host,
+                key: this.certs.key,
+                cert: this.certs.cert,
+                rejectUnauthorized: false
+            };
+            
+            if (jsEnv.isNodeOrDeno) {
+                console.debug('set options to use node:tls');
 
-            console.debug("Start Pairing Connect");
-            this.client = tls.connect(options, () => {
-                console.debug(this.host + " Pairing connected")
-            });
+                this.client = tls.connect(options, () => {
+                    console.debug(this.host + " Pairing connected");
+                });
+
+            } else if (jsEnv.isReactNative) {
+                console.debug('set options to use react-native-tcp-socket');
+                
+                options.tls = true;
+                options.tlsCheckValidity = false;
+                options.cert = this.certs.cert;
+                
+                this.client = TcpSockets.connectTLS(options, () => {
+                    console.debug(this.host + " Pairing connected");
+                });
+            }
 
             this.client.pairingManager = this;
 
-            this.client.on("secureConnect", () => {
+            const connectEventName = jsEnv.isNodeOrDeno ? "secureConnect" : "connect";
+            this.client.on(connectEventName, () => {
                 console.debug(this.host + " Pairing secure connected ");
                 this.client.write(this.pairingMessageManager.createPairingRequest(this.service_name));
             });
