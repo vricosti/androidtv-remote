@@ -38,24 +38,20 @@ class RemoteManager extends EventEmitter {
             
             if (jsEnv.isNodeOrDeno) {
                 console.debug('connecting using node:tls');
+               
                 this.client = clientConnector(options, () => {
                     console.debug("Remote connected")
                 });
                 
             } else if (jsEnv.isReactNative) {
                 console.debug('connecting using react-native-tcp-socket');
-                options.tls = true;
-                options.tlsCheckValidity = false;
-
+               
                 this.client = clientConnector(options, () => {
                     console.debug("Remote connected")
                 });
             }
 
             console.debug("Start Remote Connect");
-
-           
-            
             
             this.client.on('timeout', () => {
                 console.debug('timeout');

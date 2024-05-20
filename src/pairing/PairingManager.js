@@ -75,10 +75,6 @@ class PairingManager extends EventEmitter {
             } else if (jsEnv.isReactNative) {
                 console.debug('connecting using react-native-tcp-socket');
 
-                options.tls = true;
-                options.tlsCheckValidity = false;
-                options.cert = this.certs.cert;
-                
                 this.client = clientConnector(options, () => {
                     console.debug(this.host + " Pairing connected");
                 });
