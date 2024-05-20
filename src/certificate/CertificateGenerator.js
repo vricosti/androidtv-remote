@@ -3,7 +3,7 @@ import * as jsEnv from "../utils/utils.js";
 
 export class CertificateGenerator {
 
-    static async generateFull(name, country, state, locality, organisation, OU){
+    static async generateFull(host, name, country, state, locality, organisation, OU){
 
         if (jsEnv.isReactNative) {
             console.log('react-native detected => patch to use react-native-modpow');
@@ -40,6 +40,23 @@ export class CertificateGenerator {
             {shortName: 'OU', value: OU}
         ];
         cert.setSubject(attributes);
+
+        // Determine if host is a hostname or an IP address
+        let altNameType;
+        if (host.match(/^\d{1,3}(\.\d{1,3}){3}$/)) {
+            console.debug('host is an ip');
+            altNameType = { type: 7, ip: host };
+        } else {
+            console.debug('host is a dns name');
+            altNameType = { type: 2, value: host };
+        }
+
+        // Add subjectAltName extension with the determined host type
+        cert.setExtensions([{
+            name: 'subjectAltName',
+            altNames: [altNameType]
+        }]);
+        
         cert.sign(keys.privateKey, forge.md.sha256.create());
 
         return {
