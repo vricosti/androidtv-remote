@@ -1,4 +1,3 @@
-import tls from "tls";
 import { RemoteMessageManager } from "./RemoteMessageManager.js";
 import EventEmitter from "events";
 import {Buffer} from "buffer";
@@ -16,6 +15,18 @@ class RemoteManager extends EventEmitter {
     }
 
     async start() {
+        
+        let clientConnector;
+        if (jsEnv.isNodeOrDeno) {
+            const tls = await import('tls');
+            clientConnector = (options, callback) => tls.connect(options, callback);
+        } else if (jsEnv.isReactNative) {
+            const TcpSockets = await import('react-native-tcp-socket');
+            clientConnector = (options, callback) => TcpSockets.connectTLS(options, callback);
+        } else {
+            throw new Error("Unsupported environment");
+        }
+
         return new Promise((resolve, reject) => {
             let options = {
                 port: this.port,
@@ -27,7 +38,7 @@ class RemoteManager extends EventEmitter {
             
             if (jsEnv.isNodeOrDeno) {
                 console.debug('connecting using node:tls');
-                this.client = tls.connect(options, () => {
+                this.client = clientConnector(options, () => {
                     console.debug("Remote connected")
                 });
                 
@@ -36,7 +47,7 @@ class RemoteManager extends EventEmitter {
                 options.tls = true;
                 options.tlsCheckValidity = false;
 
-                this.client = TcpSockets.connectTLS(options, () => {
+                this.client = clientConnector(options, () => {
                     console.debug("Remote connected")
                 });
             }
@@ -54,8 +65,7 @@ class RemoteManager extends EventEmitter {
             // Le ping est reçu toutes les 5 secondes
             this.client.setTimeout(10000);
 
-            const connectEventName = jsEnv.isNodeOrDeno ? "secureConnect" : "connect";
-            this.client.on(connectEventName, () => {
+            this.client.on("secureConnect", () => {
                 console.debug(this.host + " Remote secureConnect");
                 resolve(true);
             });

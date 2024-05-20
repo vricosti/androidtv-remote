@@ -1,4 +1,3 @@
-import tls from "tls";
 import {PairingMessageManager} from "./PairingMessageManager.js";
 import forge from 'node-forge';
 import {Buffer} from "buffer";
@@ -46,6 +45,17 @@ class PairingManager extends EventEmitter {
     }
 
     async start() {
+        let clientConnector;
+        if (jsEnv.isNodeOrDeno) {
+            const tls = await import('tls');
+            clientConnector = (options, callback) => tls.connect(options, callback);
+        } else if (jsEnv.isReactNative) {
+            const TcpSockets = await import('react-native-tcp-socket');
+            clientConnector = (options, callback) => TcpSockets.connectTLS(options, callback);
+        } else {
+            throw new Error("Unsupported environment");
+        }
+
         return new Promise((resolve, reject) => {
             let options = {
                 port: this.port,
@@ -56,28 +66,27 @@ class PairingManager extends EventEmitter {
             };
             
             if (jsEnv.isNodeOrDeno) {
-                console.debug('set options to use node:tls');
+                console.debug('connecting using node:tls');
 
-                this.client = tls.connect(options, () => {
+                this.client = clientConnector(options, () => {
                     console.debug(this.host + " Pairing connected");
                 });
 
             } else if (jsEnv.isReactNative) {
-                console.debug('set options to use react-native-tcp-socket');
-                
+                console.debug('connecting using react-native-tcp-socket');
+
                 options.tls = true;
                 options.tlsCheckValidity = false;
                 options.cert = this.certs.cert;
                 
-                this.client = TcpSockets.connectTLS(options, () => {
+                this.client = clientConnector(options, () => {
                     console.debug(this.host + " Pairing connected");
                 });
             }
 
             this.client.pairingManager = this;
 
-            const connectEventName = jsEnv.isNodeOrDeno ? "secureConnect" : "connect";
-            this.client.on(connectEventName, () => {
+            this.client.on("secureConnect", () => {
                 console.debug(this.host + " Pairing secure connected ");
                 this.client.write(this.pairingMessageManager.createPairingRequest(this.service_name));
             });
